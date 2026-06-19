@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Class Pro | Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #00f2fe;
+            --bg: #05070a;
+            --surface: #12151c;
+            --surface-light: #1e232d;
+            --text-main: #e0e6ed;
+            --text-dim: #94a3b8;
+            --border: #2d3748;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', 'Hind Siliguri', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            background: rgba(18, 21, 28, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 10px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #00f2fe, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* User Profile Dropdown Styles */
+        .user-section { position: relative; }
+        .user-badge { 
+            background: var(--surface-light); padding: 5px 15px; border-radius: 20px; 
+            font-size: 0.85rem; border: 1px solid #334155; cursor: pointer; 
+            display: flex; align-items: center; gap: 8px; user-select: none;
+        }
+        .user-dropdown {
+            position: absolute; top: 110%; right: 0; background: var(--surface);
+            border: 1px solid var(--border); border-radius: 10px; width: 180px;
+            display: none; flex-direction: column; box-shadow: 0 10px 25px rgba(0,0,0,0.5); overflow: hidden;
+        }
+        .user-dropdown.show { display: flex; }
+        .dropdown-item { padding: 12px 15px; font-size: 0.85rem; color: var(--text-main); border-bottom: 1px solid var(--border); }
+        .dropdown-item.user-info { background: #0f172a; font-weight: 600; color: var(--accent); }
+        .btn-logout { 
+            width: 100%; text-align: left; background: #ef4444; color: white; border: none; 
+            padding: 12px 15px; cursor: pointer; font-size: 0.85rem; font-weight: 600;
+        }
+        .btn-logout:hover { background: #dc2626; }
+
+        .app-container { display: flex; flex: 1; overflow: hidden; }
+
+        .sidebar {
+            width: 550px;
+            background: var(--surface);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border);
+        }
+
+        .tab-nav { display: flex; background: #0f172a; padding: 5px; }
+        .tab-btn {
+            flex: 1; padding: 10px; border: none; background: transparent;
+            color: var(--text-dim); cursor: pointer; border-radius: 6px; font-size: 0.9rem; transition: 0.3s;
+        }
+        .tab-btn.active { background: var(--surface-light); color: var(--accent); font-weight: 600; }
+
+        .filter-panel {
+            padding: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+            background: var(--surface); border-bottom: 1px solid var(--border);
+        }
+        .filter-panel select {
+            background: #0f172a; color: white; border: 1px solid #334155;
+            padding: 8px; border-radius: 6px; outline: none; font-size: 0.8rem;
+        }
+
+        .table-container { flex: 1; overflow-y: auto; padding:8px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: left; }
+        th { 
+            background: #0f172a; color: var(--accent); padding: 12px 10px; 
+            position: sticky; top: 0; z-index: 5; font-weight: 600;
+            border-bottom: 1px solid var(--border); white-space: nowrap;
+        }
+        td { padding: 10px; border-bottom: 1px solid #1e293b; color: var(--text-dim); cursor: pointer; }
+        tr:hover td { background: #1e232d; color: white; }
+        
+        .player-section { flex: 1; background: #000; display: flex; flex-direction: column; padding: 20px; }
+        .video-wrapper {
+            width: 100%; max-width: 900px; margin: 0 auto;
+            border-radius: 12px; overflow: hidden; border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        video { width: 100%; aspect-ratio: 16/9; display: block; }
+        .playing-info { max-width: 900px; margin: 15px auto; width: 100%; }
+        .playing-info h2 { margin: 0; font-size: 1.1rem; color: var(--accent); }
+        .playing-info p { color: var(--text-dim); font-size: 0.85rem; margin-top: 5px; }
+
+        #loginOverlay { position: fixed; inset: 0; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .login-card { background: var(--surface); padding: 35px; border-radius: 15px; width: 320px; text-align: center; border: 1px solid var(--border); }
+        .login-card input { width: 100%; padding: 10px; margin: 8px 0; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: white; }
+        .btn-login { width: 100%; padding: 10px; background: var(--accent); border: none; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+
+        @media (max-width: 1100px) {
+            .app-container { flex-direction: column; }
+            .sidebar { width: 100%; height: 50%; }
+            .player-section { padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="loginOverlay">
+    <div class="login-card">
+        <div class="logo" style="margin-bottom: 20px;">Smart Class Pro</div>
+        <input type="text" id="username" placeholder="ইউজার নেম">
+        <input type="password" id="password" placeholder="পাসওয়ার্ড">
+        <button class="btn-login" onclick="handleLogin()">প্রবেশ করুন</button>
+        <p id="loginMsg" style="color: #ef4444; font-size: 0.75rem; margin-top: 10px;"></p>
+    </div>
+</div>
+
+<header>
+    <div class="logo">Smart Class Pro</div>
+    <div class="user-section" id="userSection" style="display: none;">
+        <div class="user-badge" onclick="toggleUserDropdown()">
+            👤 <span id="userNameDisplay">প্রোফাইল</span> ▾
+        </div>
+        <div class="user-dropdown" id="userDropdown">
+            <div class="dropdown-item user-info">ইউজার: <span id="dropUserName"></span></div>
+            <button class="btn-logout" onclick="logout()">লগআউট</button>
+        </div>
+    </div>
+</header>
+
+<div class="app-container" id="appMain" style="display: none;">
+    <div class="sidebar">
+        <div class="tab-nav">
+            <button class="tab-btn active" id="tabList" onclick="switchTab('list')">ভিডিও লিস্ট</button>
+            <button class="tab-btn" id="tabHistory" onclick="switchTab('history')">হিস্টোরি</button>
+        </div>
+
+        <div id="listView" class="table-container">
+            <div class="filter-panel">
+                <select id="classSel" onchange="updateFilters('class')"><option value="">শ্রেণী</option></select>
+                <select id="subSel" onchange="updateFilters('sub')"><option value="">বিষয়</option></select>
+                <select id="lessonSel" onchange="updateFilters('lesson')"><option value="">অধ্যায়</option></select>
+                <select id="yearSel" onchange="updateFilters('year')"><option value="">বছর</option></select>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>শ্রেণী</th>
+                        <th>বিষয়</th>
+                        <th>অধ্যায়</th>
+                        <th>টপিক</th>
+                        <th>বছর</th>
+                    </tr>
+                </thead>
+                <tbody id="videoTableBody"></tbody>
+            </table>
+        </div>
+
+        <div id="historyView" class="table-container" style="display: none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>তারিখ ও সময়</th>
+                        <th>শ্রেণী</th>
+                        <th>বিষয়</th>
+                        <th>অধ্যায়</th>
+                        <th>টপিক</th>
+                        <th>বছর</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="player-section">
+        <div class="video-wrapper">
+            <video id="mainPlayer" controls poster="https://via.placeholder.com/900x500/0a0a0a/00f2fe?text=Select+to+Watch"></video>
+        </div>
+        <div class="playing-info">
+            <h2 id="nowPlayingTitle">শিখন শুরু করুন...</h2>
+            <p id="nowPlayingMeta">বামে টেবিল থেকে ভিডিও সিলেক্ট করুন।</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-W1VEJxgRREJ6cUpDSUDLaAgDa0aQuukRHPQtPlOq1pDk3tKZPnKRVhcUwyZdmg7ygw/exec';
+    const VIDEO_BASE = "https://tenms-recordings.s3.ap-southeast-1.amazonaws.com/prod/";
+    
+    let db = [];
+    let historyData = JSON.parse(localStorage.getItem('edu_history_v2') || '[]');
+
+    window.onload = () => {
+        if(localStorage.getItem('isLoggedIn') === 'true') initApp();
+    };
+
+    function toggleUserDropdown() {
+        document.getElementById('userDropdown').classList.toggle('show');
+    }
+
+    window.onclick = function(event) {
+        if (!event.target.closest('.user-section')) {
+            document.getElementById('userDropdown').classList.remove('show');
+        }
+    }
+
+    // ফিক্স করা লগইন ফাংশন
+    async function handleLogin() {
+        const u = document.getElementById('username').value;
+        const p = document.getElementById('password').value;
+        const msg = document.getElementById('loginMsg');
+        
+        if(!u || !p) {
+            msg.innerText = "ইউজারনেম ও পাসওয়ার্ড দিন!";
+            return;
+        }
+
+        msg.innerText = "যাচাই করা হচ্ছে...";
+
+        try {
+            const res = await fetch(`${SCRIPT_URL}?type=login&user=${encodeURIComponent(u)}&pass=${encodeURIComponent(p)}`);
+            const data = await res.json();
+            
+            if(data.status === "success") {
+                localStorage.setItem('isLoggedIn', 'true');
+                // ফিক্স: সার্ভার থেকে নাম না আসলে ইনপুট করা নাম ব্যবহার হবে
+                const finalName = data.name || data.username || u;
+                localStorage.setItem('user', finalName);
+                initApp();
+            } else {
+                msg.innerText = "ভুল তথ্য! আবার চেষ্টা করুন।";
+            }
+        } catch(e) {
+            msg.innerText = "নেটওয়ার্ক সমস্যা!";
+        }
+    }
+
+    function logout() { 
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('user');
+        location.reload(); 
+    }
+
+    function initApp() {
+        const user = localStorage.getItem('user') || 'ব্যবহারকারী';
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('appMain').style.display = 'flex';
+        document.getElementById('userSection').style.display = 'flex';
+        document.getElementById('userNameDisplay').innerText = user;
+        document.getElementById('dropUserName').innerText = user;
+        loadData();
+    }
+
+    async function loadData() {
+        try {
+            const res = await fetch(SCRIPT_URL);
+            db = await res.json();
+            
+            const classes = [...new Set(db.map(i => i.class))].sort();
+            const sel = document.getElementById('classSel');
+            sel.innerHTML = '<option value="">শ্রেণী</option>';
+            classes.forEach(c => sel.add(new Option(c, c)));
+
+            const lastFilter = JSON.parse(localStorage.getItem('last_filter') || '{}');
+            if(lastFilter.class) {
+                document.getElementById('classSel').value = lastFilter.class;
+                updateFilters('class', false);
+                if(lastFilter.sub) {
+                    document.getElementById('subSel').value = lastFilter.sub;
+                    updateFilters('sub', false);
+                }
+                if(lastFilter.lesson) document.getElementById('lessonSel').value = lastFilter.lesson;
+                if(lastFilter.year) document.getElementById('yearSel').value = lastFilter.year;
+            }
+
+            filterData();
+            
+            const lastPlay = JSON.parse(localStorage.getItem('last_played_video'));
+            if(lastPlay) loadVideoIntoPlayer(lastPlay);
+        } catch(e) {
+            console.error("Data Load Error:", e);
+        }
+    }
+
+    function updateFilters(type, shouldSave = true) {
+        const c = document.getElementById('classSel').value;
+        const s = document.getElementById('subSel').value;
+        let fByClass = db.filter(i => i.class === c);
+        
+        if(type === 'class') {
+            const subs = [...new Set(fByClass.map(i => i.sub))].sort();
+            const sSel = document.getElementById('subSel');
+            sSel.innerHTML = '<option value="">বিষয়</option>';
+            subs.forEach(sub => sSel.add(new Option(sub, sub)));
+        }
+
+        if(type === 'sub' || type === 'class') {
+            const lessons = [...new Set(fByClass.filter(i => !s || i.sub === s).map(i => i.lesson))].sort();
+            const lSel = document.getElementById('lessonSel');
+            lSel.innerHTML = '<option value="">অধ্যায়</option>';
+            lessons.forEach(l => lSel.add(new Option(l, l)));
+
+            const years = [...new Set(fByClass.filter(i => !s || i.sub === s).map(i => i.year))].sort();
+            const ySel = document.getElementById('yearSel');
+            ySel.innerHTML = '<option value="">বছর</option>';
+            years.forEach(y => ySel.add(new Option(y, y)));
+        }
+
+        if(shouldSave) {
+            localStorage.setItem('last_filter', JSON.stringify({
+                class: document.getElementById('classSel').value,
+                sub: document.getElementById('subSel').value,
+                lesson: document.getElementById('lessonSel').value,
+                year: document.getElementById('yearSel').value
+            }));
+        }
+        filterData();
+    }
+
+    function filterData() {
+        const c = document.getElementById('classSel').value;
+        const s = document.getElementById('subSel').value;
+        const l = document.getElementById('lessonSel').value;
+        const y = document.getElementById('yearSel').value;
+        
+        const filtered = db.filter(i => 
+            (!c || i.class === c) && (!s || i.sub === s) &&
+            (!l || i.lesson === l) && (!y || i.year === y)
+        );
+        
+        const body = document.getElementById('videoTableBody');
+        body.innerHTML = "";
+        filtered.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${item.class}</td><td>${item.sub}</td><td>${item.lesson}</td><td>${item.topic}</td><td>${item.year}</td>`;
+            row.onclick = () => playVideo(item);
+            body.appendChild(row);
+        });
+    }
+
+    function playVideo(item) {
+        loadVideoIntoPlayer(item);
+        document.getElementById('mainPlayer').play();
+        saveHistory(item);
+        localStorage.setItem('last_played_video', JSON.stringify(item));
+    }
+
+    function loadVideoIntoPlayer(item) {
+        const player = document.getElementById('mainPlayer');
+        player.src = item.url.startsWith('http') ? item.url : VIDEO_BASE + item.url + ".mp4";
+        document.getElementById('nowPlayingTitle').innerText = item.topic;
+        document.getElementById('nowPlayingMeta').innerText = `${item.class} • ${item.sub} • ${item.lesson}`;
+    }
+
+    function saveHistory(item) {
+        const time = new Date().toLocaleString('bn-BD', {
+            year: 'numeric', month: 'short', day: 'numeric', 
+            hour: '2-digit', minute:'2-digit'
+        });
+        historyData = historyData.filter(h => h.topic !== item.topic);
+        historyData.unshift({ ...item, time });
+        localStorage.setItem('edu_history_v2', JSON.stringify(historyData.slice(0, 50)));
+        if(document.getElementById('historyView').style.display === 'block') renderHistory();
+    }
+
+    function renderHistory() {
+        const body = document.getElementById('historyTableBody');
+        body.innerHTML = "";
+        historyData.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.time}</td>
+                <td>${item.class}</td>
+                <td>${item.sub}</td>
+                <td>${item.lesson}</td>
+                <td>${item.topic}</td>
+                <td>${item.year}</td>
+            `;
+            row.onclick = () => playVideo(item);
+            body.appendChild(row);
+        });
+    }
+
+    function switchTab(tab) {
+        document.getElementById('listView').style.display = tab === 'list' ? 'block' : 'none';
+        document.getElementById('historyView').style.display = tab === 'history' ? 'block' : 'none';
+        document.getElementById('tabList').classList.toggle('active', tab === 'list');
+        document.getElementById('tabHistory').classList.toggle('active', tab === 'history');
+        if(tab === 'history') renderHistory();
+    }
+</script>
+</body>
+</html>
